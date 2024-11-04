@@ -3,7 +3,7 @@
 ## Overview
 This project focuses on analyzing customer behavior and segmenting customers using the RFM (Recency, Frequency, Monetary) approach. By analyzing various customer attributes and transaction data, we aim to help businesses optimize their marketing strategies, improve customer service, and reduce customer churn.
 
-## Business Problem
+## Problem Statement
 Businesses need to understand their customers better to:
 - Optimize marketing campaigns
 - Improve customer retention
@@ -12,7 +12,8 @@ Businesses need to understand their customers better to:
 - Prevent customer churn
 
 ## Dataset
-The dataset contains comprehensive customer information including:
+
+The dataset contains more than 300k+ comprehensive customer information including:
 - Customer demographics (ID, name, email, phone, address, age, gender, income)
 - Transaction details (purchase dates, amounts, products)
 - Product information (category, brand, type)
@@ -42,16 +43,75 @@ The dataset contains comprehensive customer information including:
 - Temporal analysis
 - Customer feedback analysis
 
-### 2. RFM Analysis Implementation
-- **Recency**: Time since customer's last purchase
-- **Frequency**: Number of purchases
-- **Monetary**: Total spending amount
+### 2. Data Preprocessing
+1. **Handling Missing Values**
+   - Check for null values in each column
+   - Apply appropriate imputation methods
+   - Remove or fill missing values based on business context
 
-### 3. Customer Segmentation
-Using K-means clustering, customers are segmented into three tiers:
-- **Gold/Top-tier**: High frequency, high monetary value, low recency
-- **Silver/Middle-tier**: Moderate across all metrics
-- **Bronze/Last-tier**: Low frequency, low monetary value, high recency
+2. **Feature Engineering**
+   - Calculate RFM metrics
+     - Recency: Days since last purchase
+     - Frequency: Total number of purchases
+     - Monetary: Total amount spent
+
+3. **Data Transformation**
+   - Label encoding for categorical variables
+   - One-hot encoding for nominal variables
+   - Feature scaling using StandardScaler
+   - Normalization of RFM values to 0-1 range
+
+4. **Feature Selection**
+   - Remove redundant features
+   - Select relevant features for clustering
+   - Focus on RFM metrics for final segmentation
+
+### 3. K-means Implementation
+
+1. **Algorithm Setup**
+   ```python
+   from sklearn.cluster import KMeans
+   from sklearn.preprocessing import StandardScaler
+   ```
+
+2. **Data Preparation**
+   ```python
+   # Scale the RFM features
+   scaler = StandardScaler()
+   rfm_scaled = scaler.fit_transform(rfm_df[['Recency', 'Frequency', 'Monetary']])
+   ```
+
+3. **Optimal Cluster Selection**
+   - Elbow Method Implementation
+   ```python
+   inertias = []
+   for k in range(1, 11):
+       kmeans = KMeans(n_clusters=k, random_state=42)
+       kmeans.fit(rfm_scaled)
+       inertias.append(kmeans.inertia_)
+   ```
+   - Silhouette Score Analysis
+   ```python
+   from sklearn.metrics import silhouette_score
+   silhouette_scores = []
+   for k in range(2, 11):
+       kmeans = KMeans(n_clusters=k, random_state=42)
+       cluster_labels = kmeans.fit_predict(rfm_scaled)
+       silhouette_avg = silhouette_score(rfm_scaled, cluster_labels)
+       silhouette_scores.append(silhouette_avg)
+   ```
+
+4. **Final Model Training**
+   ```python
+   # Train K-means with optimal clusters
+   final_kmeans = KMeans(n_clusters=3, random_state=42)
+   clusters = final_kmeans.fit_predict(rfm_scaled)
+   ```
+
+5. **Customer Segmentation Results**
+   - Cluster 1 (Gold): High frequency, high monetary value, low recency
+   - Cluster 2 (Silver): Moderate values across all metrics
+   - Cluster 0 (Bronze): Low frequency, low monetary value, high recency
 
 ## Key Findings
 
@@ -72,44 +132,20 @@ Using K-means clustering, customers are segmented into three tiers:
 - Peak transactions in April and August
 - Consistent weekly distribution with slight Thursday preference
 
-## Recommendations
-
-### For Business Growth
-1. **Top-tier Customer Retention**
-   - Implement exclusive rewards
-   - Provide premium services
-   - Early access to new products/features
-
-2. **Middle-tier Customer Development**
-   - Targeted promotions
-   - Loyalty program benefits
-   - Personalized communication
-
-3. **Bronze-tier Customer Engagement**
-   - Analysis of spending patterns
-   - Targeted marketing campaigns
-   - Special onboarding offers
-
-### Operational Improvements
-1. **Order Management**
-   - Address pending order issues
-   - Improve delivery times
-   - Enhanced order tracking
-
-2. **Product Strategy**
-   - Focus on electronics category
-   - Optimize brand portfolio
-   - Review pricing strategies
+### RFM Segmentation Results
+- Clear distinction between customer segments based on purchasing behavior
+- Identified high-value customers for targeted marketing
+- Discovered potential growth segments
 
 ## Technical Implementation
 
 ### Requirements
 ```
-pandas
-numpy
-scikit-learn
-matplotlib
-seaborn
+pandas==1.5.3
+numpy==1.24.3
+scikit-learn==1.2.2
+matplotlib==3.7.1
+seaborn==0.12.2
 ```
 
 ### Setup
@@ -124,8 +160,3 @@ seaborn
 - Enhanced visualization dashboard
 - Customer lifetime value prediction
 
-## Contributors
-[Your Name/Team]
-
-## License
-[License Type]
